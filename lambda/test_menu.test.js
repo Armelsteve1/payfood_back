@@ -36,9 +36,7 @@ test('PUT /items should put item', async () => {
       name: "Test Item",
     })
   };
-
   const context = {};
-
   const response = await handler(event, context);
   expect(response.statusCode).toBe(200);
   expect(response.body).toContain("Put item rest08/menu08");

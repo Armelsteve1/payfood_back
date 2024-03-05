@@ -84,5 +84,4 @@ const handler = async (event, context) => {
     headers,
   };
 };
-
 module.exports = { handler };
