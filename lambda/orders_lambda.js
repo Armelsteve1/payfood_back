@@ -59,7 +59,8 @@ export const handler = async (event, context) => {
               foodIds: requestJSON.foodIds,
               date: requestJSON.date,
               paymentCard: requestJSON.paymentCard,
-              paymentCardTypeImage: requestJSON.paymentCardTypeImage
+              paymentCardTypeImage: requestJSON.paymentCardTypeImage,
+              customer: requestJSON.customer
             },
           })
         );
