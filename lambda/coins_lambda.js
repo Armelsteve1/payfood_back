@@ -8,7 +8,9 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
+
 const dynamo = DynamoDBDocumentClient.from(client);
+
 const tableName = "coins";
 
 export const handler = async (event, context) => {
@@ -32,7 +34,7 @@ export const handler = async (event, context) => {
         body = `Deleted item ${event.pathParameters.id}`;
         break;
       case "GET /coins/{id}":
-        const { Item } = await dynamo.send(
+        body = await dynamo.send(
           new GetCommand({
             TableName: tableName,
             Key: {
@@ -40,28 +42,55 @@ export const handler = async (event, context) => {
             },
           })
         );
-        body = Item;
+        body = body.Item;
         break;
       case "GET /coins":
-        const { Items } = await dynamo.send(
+        body = await dynamo.send(
           new ScanCommand({ TableName: tableName })
         );
-        body = Items;
+        body = body.Items;
+        break;
+      case "GET /coins/{customer}":
+        body = await dynamo.send(
+          new ScanCommand({
+            TableName: tableName,
+            FilterExpression: "customer = :customer",
+            ExpressionAttributeValues: {
+              ":customer": event.pathParameters.customer,
+            },
+          })
+        );
+        body = body.Items;
         break;
       case "POST /coins":
-        const requestJSON = JSON.parse(event.body);
+        let requestJSON = JSON.parse(event.body);
         await dynamo.send(
           new PutCommand({
             TableName: tableName,
             Item: {
               id: requestJSON.id,
-              customer: requestJSON.customer,
               amount: requestJSON.amount,
-              updatedAt: requestJSON.updatedAt
+              updatedAt: requestJSON.updatedAt,
+              customer: requestJSON.customer,
             },
           })
         );
         body = `Put coins ${requestJSON.id}`;
+        break;
+      case "PUT /coins/{id}":
+        let putRequestJSON = JSON.parse(event.body);
+        await dynamo.send(
+          new PutCommand({
+            TableName: tableName,
+            Item: {
+              id: event.pathParameters.id,
+              amount: putRequestJSON.amount,
+              updatedAt: putRequestJSON.updatedAt,
+              customer: putRequestJSON.customer,
+            },
+          })
+        );
+        body = `Updated coins ${event.pathParameters.id}`;
         break;
       default:
         throw new Error(`Unsupported route: "${event.routeKey}"`);
@@ -71,10 +100,11 @@ export const handler = async (event, context) => {
     body = err.message;
   } finally {
     body = JSON.stringify(body);
-    return {
-      statusCode,
-      body,
-      headers,
-    };
   }
+
+  return {
+    statusCode,
+    body,
+    headers,
+  };
 };
