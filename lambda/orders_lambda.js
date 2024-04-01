@@ -8,9 +8,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
-
 const dynamo = DynamoDBDocumentClient.from(client);
-
 const tableName = "orders";
 
 export const handler = async (event, context) => {
@@ -34,7 +32,7 @@ export const handler = async (event, context) => {
         body = `Deleted item ${event.pathParameters.id}`;
         break;
       case "GET /order/{id}":
-        body = await dynamo.send(
+        const { Item } = await dynamo.send(
           new GetCommand({
             TableName: tableName,
             Key: {
@@ -42,23 +40,26 @@ export const handler = async (event, context) => {
             },
           })
         );
-        body = body.Item;
+        body = Item;
         break;
       case "GET /orders":
-        body = await dynamo.send(
+        const { Items } = await dynamo.send(
           new ScanCommand({ TableName: tableName })
         );
-        body = body.Items;
+        body = Items;
         break;
       case "POST /orders":
-        let requestJSON = JSON.parse(event.body);
+        const requestJSON = JSON.parse(event.body);
         await dynamo.send(
           new PutCommand({
             TableName: tableName,
             Item: {
               id: requestJSON.id,
               price: requestJSON.price,
-              name: requestJSON.name,
+              foodIds: requestJSON.foodIds,
+              date: requestJSON.date,
+              paymentCard: requestJSON.paymentCard,
+              paymentCardTypeImage: requestJSON.paymentCardTypeImage
             },
           })
         );
@@ -72,11 +73,10 @@ export const handler = async (event, context) => {
     body = err.message;
   } finally {
     body = JSON.stringify(body);
+    return {
+      statusCode,
+      body,
+      headers,
+    };
   }
-
-  return {
-    statusCode,
-    body,
-    headers,
-  };
 };
