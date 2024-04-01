@@ -56,7 +56,7 @@ export const handler = async (event, context) => {
             Item: {
               id: requestJSON.id,
               customer: requestJSON.customer,
-              amount: requestJSON.foodIds,
+              amount: requestJSON.amount,
               updatedAt: requestJSON.updatedAt
             },
           })
