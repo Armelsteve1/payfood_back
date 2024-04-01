@@ -50,7 +50,7 @@ export const handler = async (event, context) => {
         );
         body = body.Items;
         break;
-      case "PUT /orders":
+      case "POST /orders":
         let requestJSON = JSON.parse(event.body);
         await dynamo.send(
           new PutCommand({
